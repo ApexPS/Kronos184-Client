@@ -1715,223 +1715,52 @@ public final class Client extends GameShell implements Usernamed, net.runelite.a
 
    public final void init() {
       try {
-         if(this.method967()) {
-            for(int var1 = 0; var1 <= 19; ++var1) {
-               String var2 = this.getParameter(Integer.toString(var1));
-               if(var2 != null) {
-                  switch(var1) {
-                  case 1:
-                     useBufferedSocket = Integer.parseInt(var2) != 0;
-                  case 2:
-                  case 11:
-                  case 13:
-                  case 16:
-                  default:
-                     break;
-                  case 3:
-                     if(var2.equalsIgnoreCase("true")) {
-                        isMembersWorld = true;
-                     } else {
-                        isMembersWorld = false;
-                     }
-                     break;
-                  case 4:
-                     if(clientType == -1) {
-                        clientType = Integer.parseInt(var2);
-                     }
-                     break;
-                  case 5:
-                     worldProperties = Integer.parseInt(var2);
-                     break;
-                  case 6:
-                     WorldMapLabelSize.clientLanguage = Language.method3820(Integer.parseInt(var2));
-                     break;
-                  case 7:
-                     VertexNormal.field1530 = FloorDecoration.method2433(Integer.parseInt(var2));
-                     break;
-                  case 8:
-                     if(var2.equalsIgnoreCase("true")) {
-                        ;
-                     }
-                     break;
-                  case 9:
-                     class197.field2177 = var2;
-                     break;
-                  case 10:
-                     StudioGame[] var3 = new StudioGame[]{StudioGame.game3, StudioGame.runescape, StudioGame.stellardawn, StudioGame.oldscape, StudioGame.game4, StudioGame.game5};
-                     class10.field66 = (StudioGame)NetSocket.getEnumeratedTypeIndex(var3, Integer.parseInt(var2));
-                     if(class10.field66 == StudioGame.oldscape) {
-                        WorldMapSection1.loginType = LoginType.oldscape;
-                     } else {
-                        WorldMapSection1.loginType = LoginType.field3936;
-                     }
-                     break;
-                  case 12:
-                     worldId = Integer.parseInt(var2);
-                     break;
-                  case 14:
-                     WorldMapArea.field140 = Integer.parseInt(var2);
-                     break;
-                  case 15:
-                     gameBuild = Integer.parseInt(var2);
-                     break;
-                  case 17:
-                     WorldMapSectionType.field59 = var2;
-                  }
-               }
-            }
+    // Get user home directory
+    try {
+        JagexCache.userHomeDirectory = System.getProperty("user.home");
+        if (JagexCache.userHomeDirectory != null) {
+            JagexCache.userHomeDirectory = JagexCache.userHomeDirectory + "/";
+        }
+    } catch (Exception e) {
+        JagexCache.userHomeDirectory = "~/";
+    }
 
-            GrandExchangeOfferUnitPriceComparator.method1471();
-            class158.worldHost = CustomMain.worldType.getGameServerAddress();
-            String var11 = VertexNormal.field1530.name;
-            byte var12 = 0;
+    // Force cache directory to ApexCache
+    GrandExchangeOfferOwnWorldComparator.cacheDir = new File(JagexCache.userHomeDirectory + "ApexCache/");
+    if (!GrandExchangeOfferOwnWorldComparator.cacheDir.exists()) {
+        GrandExchangeOfferOwnWorldComparator.cacheDir.mkdirs();
+    }
 
-            try {
-               JagexCache.idxCount = 21;
-               BufferedNetSocket.cacheGamebuild = var12;
+    FileSystem.FileSystem_cacheDir = GrandExchangeOfferOwnWorldComparator.cacheDir;
+    FileSystem.FileSystem_hasPermissions = true;
 
-               try {
-                  HealthBarUpdate.field589 = System.getProperty("os.name");
-               } catch (Exception var19) {
-                  HealthBarUpdate.field589 = "Unknown";
-               }
+    // random.dat handling
+    File randomDat = new File(GrandExchangeOfferOwnWorldComparator.cacheDir, "random.dat");
+    if (!randomDat.exists()) {
+        RandomAccessFile raf = new RandomAccessFile(randomDat, "rw");
+        int b = raf.read();
+        raf.seek(0L);
+        raf.write(b);
+        raf.seek(0L);
+        raf.close();
+    }
+    JagexCache.JagexCache_randomDat = new BufferedFile(new AccessFile(randomDat, "rw", 25L), 24, 0);
 
-               class163.field1987 = HealthBarUpdate.field589.toLowerCase();
+    // main cache files
+    JagexCache.JagexCache_dat2File = new BufferedFile(new AccessFile(new File(GrandExchangeOfferOwnWorldComparator.cacheDir, "main_file_cache.dat2"), "rw", 1048576000L), 5200, 0);
+    JagexCache.JagexCache_idx255File = new BufferedFile(new AccessFile(new File(GrandExchangeOfferOwnWorldComparator.cacheDir, "main_file_cache.idx255"), "rw", 1048576L), 6000, 0);
 
-               try {
-                  JagexCache.userHomeDirectory = System.getProperty("user.home");
-                  if(JagexCache.userHomeDirectory != null) {
-                     JagexCache.userHomeDirectory = JagexCache.userHomeDirectory + "/";
-                  }
-               } catch (Exception var18) {
-                  ;
-               }
+    // idx files
+    class188.JagexCache_idxFiles = new BufferedFile[JagexCache.idxCount];
+    for (int i = 0; i < JagexCache.idxCount; i++) {
+        File idxFile = new File(GrandExchangeOfferOwnWorldComparator.cacheDir, "main_file_cache.idx" + i);
+        class188.JagexCache_idxFiles[i] = new BufferedFile(new AccessFile(idxFile, "rw", 1048576L), 6000, 0);
+    }
 
-               try {
-                  if(class163.field1987.startsWith("win")) {
-                     if(JagexCache.userHomeDirectory == null) {
-                        JagexCache.userHomeDirectory = System.getenv("USERPROFILE");
-                     }
-                  } else if(JagexCache.userHomeDirectory == null) {
-                     JagexCache.userHomeDirectory = System.getenv("HOME");
-                  }
-
-                  if(JagexCache.userHomeDirectory != null) {
-                     JagexCache.userHomeDirectory = JagexCache.userHomeDirectory + "/";
-                  }
-               } catch (Exception var17) {
-                  ;
-               }
-
-               if(JagexCache.userHomeDirectory == null) {
-                  JagexCache.userHomeDirectory = "~/";
-               }
-
-               UserComparator4.field1892 = new String[]{"c:/rscache/", "/rscache/", "c:/windows/", "c:/winnt/", "c:/", JagexCache.userHomeDirectory, "/tmp/", ""};
-               class266.field3545 = new String[]{".jagex_cache_" + BufferedNetSocket.cacheGamebuild, ".file_store_" + BufferedNetSocket.cacheGamebuild};
-
-               int var6;
-               File var7;
-               label176:
-               for(int var13 = 0; var13 < 4; ++var13) {
-                  GrandExchangeOfferOwnWorldComparator.cacheDir = WorldMapRegion.method337("oldschool", var11, var13);
-                  if(!GrandExchangeOfferOwnWorldComparator.cacheDir.exists()) {
-                     GrandExchangeOfferOwnWorldComparator.cacheDir.mkdirs();
-                  }
-
-                  File[] var4 = GrandExchangeOfferOwnWorldComparator.cacheDir.listFiles();
-                  if(var4 == null) {
-                     break;
-                  }
-
-                  File[] var5 = var4;
-                  var6 = 0;
-
-                  while(true) {
-                     if(var6 >= var5.length) {
-                        break label176;
-                     }
-
-                     var7 = var5[var6];
-
-                     boolean var8;
-                     try {
-                        RandomAccessFile var9 = new RandomAccessFile(var7, "rw");
-                        int var10 = var9.read();
-                        var9.seek(0L);
-                        var9.write(var10);
-                        var9.seek(0L);
-                        var9.close();
-                        var8 = true;
-                     } catch (Exception var16) {
-                        var8 = false;
-                     }
-
-                     if(!var8) {
-                        break;
-                     }
-
-                     ++var6;
-                  }
-               }
-
-               File var23 = GrandExchangeOfferOwnWorldComparator.cacheDir;
-               FileSystem.FileSystem_cacheDir = var23;
-               if(!FileSystem.FileSystem_cacheDir.exists()) {
-                  throw new RuntimeException("");
-               }
-
-               FileSystem.FileSystem_hasPermissions = true;
-
-               try {
-                  File var24 = new File(JagexCache.userHomeDirectory, "random.dat");
-                  if(var24.exists()) {
-                     JagexCache.JagexCache_randomDat = new BufferedFile(new AccessFile(var24, "rw", 25L), 24, 0);
-                  } else {
-                     label153:
-                     for(int var14 = 0; var14 < class266.field3545.length; ++var14) {
-                        for(var6 = 0; var6 < UserComparator4.field1892.length; ++var6) {
-                           var7 = new File(UserComparator4.field1892[var6] + class266.field3545[var14] + File.separatorChar + "random.dat");
-                           if(var7.exists()) {
-                              JagexCache.JagexCache_randomDat = new BufferedFile(new AccessFile(var7, "rw", 25L), 24, 0);
-                              break label153;
-                           }
-                        }
-                     }
-                  }
-
-                  if(JagexCache.JagexCache_randomDat == null) {
-                     RandomAccessFile var25 = new RandomAccessFile(var24, "rw");
-                     var6 = var25.read();
-                     var25.seek(0L);
-                     var25.write(var6);
-                     var25.seek(0L);
-                     var25.close();
-                     JagexCache.JagexCache_randomDat = new BufferedFile(new AccessFile(var24, "rw", 25L), 24, 0);
-                  }
-               } catch (IOException var20) {
-                  ;
-               }
-
-               JagexCache.JagexCache_dat2File = new BufferedFile(new AccessFile(UserComparator8.method2885("main_file_cache.dat2"), "rw", 1048576000L), 5200, 0);
-               JagexCache.JagexCache_idx255File = new BufferedFile(new AccessFile(UserComparator8.method2885("main_file_cache.idx255"), "rw", 1048576L), 6000, 0);
-               class188.JagexCache_idxFiles = new BufferedFile[JagexCache.idxCount];
-
-               for(int var15 = 0; var15 < JagexCache.idxCount; ++var15) {
-                  class188.JagexCache_idxFiles[var15] = new BufferedFile(new AccessFile(UserComparator8.method2885("main_file_cache.idx" + var15), "rw", 1048576L), 6000, 0);
-               }
-            } catch (Exception var21) {
-               class19.method342((String)null, var21);
-            }
-
-            ViewportMouse.client = this;
-            ClientType.clientType = clientType;
-            this.method965(765, 503, 184);
-         }
-      } catch (RuntimeException var22) {
-         throw class125.method2877(var22, "client.init(" + ')');
-      }
-   }
+} catch (Exception e) {
+    e.printStackTrace();
+    throw new RuntimeException("Failed to set up ApexCache", e);
+}
 
    public void setPrintMenuActions(boolean var1) {
       printMenuActions = var1;
